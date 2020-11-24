@@ -1,0 +1,35 @@
+$schema: "http://json-schema.org/draft-06/schema#"
+description: "general configure settings."
+properties:
+  fastq_dir:
+    default: "by_samples_fastq"
+    description: "path to the raw fastq files"
+    type: string
+  link_table:
+    default: "/d0/data/ucsd/refs/links.txt"
+    description: "path to the link table - link sampleID with libID"
+    type: string
+  assay_type:
+    default: "snare_2"
+    description: "assay type, e.g. 10X, snare_2"
+    type: string
+  fastqc_dir:
+    default: "/home/qiwenhu/software/FastQC/fastqc"
+    description: "path to fastqc"
+    type: string
+  dropest_config:
+    default: "/home/qiwenhu/hubmap/pip/scripts/test_script/integrated/conf/split_seq.xml"
+    description: "configure file from dropest"
+    type: string
+  index_file:
+    default: "/d0/data/ucsd/refs/refdata-cellranger-GRCh38-3.0.0/star"
+    description: "path to STAR index file for alignment"
+    type: string
+  gtf_dir:
+    default: "/d0/data/ucsd/refs/refdata-cellranger-GRCh38-3.0.0/genes/genes.gtf"
+    description: "path to gtf file for gene annotation"
+    type: string
+  scripts_dir:
+    default: "/home/qiwenhu/hubmap/pip/scripts/test_script/integrated/scripts"
+    description: "path to other scripts needed for processing pipeline"
+    type: string
