@@ -25,6 +25,6 @@ pipenv install -e https://github.com/huqiwen0313/snarePip.git#egg=master
 snarePip R package for atac-seq QC and downstream analysis
 ```bash
 install.packages("devtools")
-devtools::install_github("huqiwen0313/snarePip")
+devtools::install_github("huqiwen0313/snarePip", ref="main")
 ```  
 
