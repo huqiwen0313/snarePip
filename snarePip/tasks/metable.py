@@ -29,7 +29,7 @@ class ContentMetaTable(ExternalTask):
 
 class TargetFolder(ExternalTask):
     """returns lists of the raw fastqs in target folder"""
-    folder_dir = Parameter(default="./test_RNA_dir/by_samples_fastq")
+    folder_dir = Parameter()
 
     def output(self):
         # return list of raw fastq files
@@ -68,16 +68,17 @@ class GetNewSample(Task):
 
 class CheckSample(Task):
     """check if samples that need to process exist in the target folder"""
-    RNAdir = Parameter(default="./test_RNA_dir/by_samples_fastq")
-    ATACdir = Parameter(default="./test_ATAC_dir/by_samples_fastq")
+    fastq_folder = "by_samples_fastq"
+    RNAdir = Parameter(default=os.path.join("./test_RNA_dir", fastq_folder))
+    ATACdir = Parameter(default=os.path.join("./test_ATAC_dir", fastq_folder))
     sheet_name = Parameter(default="template.test.data")
     worksheet = IntParameter(default=0)
 
     def requires(self):
         return {
                 'newSample': GetNewSample(sheet_name=self.sheet_name, worksheet=self.worksheet),
-                'rnaSamples_folder': TargetFolder(folder_dir=self.RNAdir),
-                'atacSamples_folder': TargetFolder(folder_dir=self.ATACdir)
+                'rnaSamples_folder': TargetFolder(folder_dir=os.path.join(self.RNAdir, self.fastq_folder)),
+                'atacSamples_folder': TargetFolder(folder_dir=os.path.join(self.ATACdir, self.fastq_folder))
         }
 
     def output(self):
@@ -100,6 +101,7 @@ class CheckSample(Task):
 
         # output samples that need to be processed in the raw fastq folder
         samples_df = process_samples_df.loc[process_samples_df['Experiment_ID'].isin(rna_processed_list + atac_processed_list)]
+        samples_df['runid'] = None
         samples_df.to_csv(self.output().path, index=False, header=True)
 
 
