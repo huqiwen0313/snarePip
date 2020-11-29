@@ -11,8 +11,7 @@ from luigi.task import flatten
 def creat_salted_version(task):
     """Create a salted id/version for this task and lineage
     """
-    Pass
-
+    pass
 
 
 class Requirement:
@@ -86,5 +85,18 @@ class TargetOutput:
         file_name = self.file_pattern + self.ext
         return self.target_class(file_name.format(task=task))
 
+
+class ListTarget:
+    def __init__(self, listobj):
+        self.listobj = listobj
+
+    def exists(self):
+        if self.listobj is None:
+            return 0
+        else:
+            return 1
+
+    def getobj(self):
+        return self.listobj
 
 

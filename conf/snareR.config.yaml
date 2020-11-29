@@ -29,7 +29,44 @@ properties:
     default: "/d0/data/ucsd/refs/refdata-cellranger-GRCh38-3.0.0/genes/genes.gtf"
     description: "path to gtf file for gene annotation"
     type: string
+  genome_mmi:
+    default: "/d0/data/ucsd/refs/refdata-cellranger-atac-GRCh38-1.1.0/fasta/genome.fa.mmi"
+    description: "path to minimap genome index file for atac alignment"
+    type: string
+  hs_csize:
+    default: "/d0/data/ucsd/refs/refdata-cellranger-atac-GRCh38-1.1.0/fasta/genome.fa.fai"
+    description: "path to genome index file"
+    type: string
+  genome_name:
+    default: "hg38"
+    description: "genome version"
+    type: string
+  snap_aligner:
+    default: "/home/qiwenhu/software/minimap2"
+    description: "path to aligner tools for snaptools"
+    type: string
+  white_list:
+    default: "/home/qiwenhu/hubmap/pip/scripts/test_script/integrated/conf/whitelist"
+    description: "whitelist file"
+    type: string
   scripts_dir:
     default: "/home/qiwenhu/hubmap/pip/scripts/test_script/integrated/scripts"
     description: "path to other scripts needed for processing pipeline"
     type: string
+  macs:
+    default: "/home/qiwenhu/anaconda2/envs/py36/envs/snakemake/bin/macs2"
+    description: "path to macs"
+    type: string
+  bedtools:
+    default: "/home/qiwenhu/software/bedtools2/bin/bedtools"
+    description: "path to bedtools"
+    type: string
+  blacklist:
+    default: "/d0/data/ucsd/refs/hg38.blacklist.bed"
+    description: "blacklist file"
+    type: string
+  rna_path:
+    default: "/home/qiwenhu/hubmap/pip/test_datasets/samples/RNA_processed_dataset"
+    description: "path to processed RNA samples"
+    type: string
+

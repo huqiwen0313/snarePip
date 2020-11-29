@@ -10,4 +10,4 @@ rule merge_to_sample_level_9:
         link = "TRUE",
         script_dir = config['scripts_dir']
     run:
-        shell("Rscript {params.scripts_path}/distr.sample.R {params.ATACdir} {params.delete_tmp} {params.type} {params.link}")
+        shell("Rscript {params.script_dir}/distr.sample.R {params.ATACdir} {params.delete_tmp} {params.type} {params.link}")
