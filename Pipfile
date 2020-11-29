@@ -13,7 +13,10 @@ pandas = "*"
 xlrd = "*"
 pyarrow = "*"
 atomicwrites = "*"
-
+snakemake = "*"
+luigi = "*"
+oauth2client = "*"
+gspread = "*"
 
 [requires]
-python_version = "3.7"
+#python_version = "3.7"
