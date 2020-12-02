@@ -1,5 +1,6 @@
 from snarePip.tasks.snakemakeRun import snakemakeRNA, snakemakeATAC
-from snarePip.tasks.metable import GetNewSample, TargetFolder, CheckSample
+from snarePip.tasks.metable import TargetFolder
+from snarePip.tasks.qc import *
 from luigi import build
 import argparse
 
@@ -14,6 +15,8 @@ parser.add_argument("-a", "--ATACdir", default="./by_samples_fastq",
                     help="path contains RNA raw fastq files")
 parser.add_argument("-c", "--cores", default=1, type=int,
                     help="number of cores used to run snakemake pipeline")
+parser.add_argument("-t", "--type", default="snare_2",
+                    help="assay type, e.g. snare_2, tenX")
 parser.add_argument("-sr", "--snakeRNA", default="Snakefile.RNA",
                     help="snakemake file for RNA processing")
 parser.add_argument("-sa", "--snakeATAC", default="Snakefile.ATAC",
@@ -27,12 +30,16 @@ def main(arg=None):
         build([TargetFolder(
         folder_dir=args.RNAdir)], local_scheduler=True)
     else:
-        build([snakemakeATAC(
+        build([UpdateQC(
             RNAdir=args.RNAdir,
             ATACdir=args.ATACdir,
             sheet_name=args.sampletable,
             worksheet=args.worksheet,
             ncores=args.cores,
             snakefileRNA=args.snakeRNA,
-            snakefileATAC=args.snakeATAC)], local_scheduler=True)
-
+            snakefileATAC=args.snakeATAC,
+            sindex=0,
+            qcTableName=args.sampletable,
+            assayType=args.type
+        )], local_scheduler=True)
+ 
