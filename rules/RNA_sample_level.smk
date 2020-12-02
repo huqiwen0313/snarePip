@@ -17,7 +17,7 @@ rule dropReport_QC_sample_10:
     input:
         join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/obj/{sample_name}.sample_matrix.rds")
     output:
-        QCs = join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/QCs/{sample_name}.QC.txt")
+        QCs = join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/QCs/{sample_name}.qc.txt")
     params:
         sampleID = "{sample_name}",
         path = join(CURRENT_DIR, ASSAY, "{tissue}/samples/{sample_name}/Sample_output"),
