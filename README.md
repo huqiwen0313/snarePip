@@ -14,9 +14,11 @@ The current version of pipeline automatically processing single-cell RNA and ATA
 
 The entire framework is based on Directed acyclic graph (DAG) and [luigi](https://luigi.readthedocs.io/en/stable/) framework is used to build the DAG that connect data processing and meta-table part together with salted workflow for better version control.
 
-![](./documentation/images/snarePip.dag.png)
+<p align="center"> 
+<img src="documentation/images/snarePip.dag.png" width="700"/>
+</p>
 
-**DAG of Snare-seq automated processing system
+**DAG of Snare-seq automated processing system**
 
 ## Installation
 Installation contains 2 parts, for meta-table and python related functions:
