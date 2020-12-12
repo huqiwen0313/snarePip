@@ -50,7 +50,7 @@ properties:
     description: "whitelist file"
     type: string
   scripts_dir:
-    default: "/home/qiwenhu/hubmap/pip/scripts/test_script/integrated/scripts"
+    default: "/home/qiwenhu/software/snarePip/scripts"
     description: "path to other scripts needed for processing pipeline"
     type: string
   macs:
@@ -69,4 +69,21 @@ properties:
     default: "/home/qiwenhu/hubmap/pip/test_datasets/samples/RNA_processed_dataset"
     description: "path to processed RNA samples"
     type: string
+  dt_n6:
+    default: "/d0/data/ucsd/refs/R1_dTN6_pairs.txt"
+    description: "txt file contains dt/n6 pairs"
+    type: string
+  mt_list:
+    default: "/home/qiwenhu/software/snarePip/conf/MT_gene.list"
+    description: "path to mitochondria gene list"
+    type: string
+  samtool_path:
+    default: "/home/qiwenhu/bin/bin/samtools"
+    description: "path to samtools"
+    type: string
+  scrublet_path:
+    default: "/home/qiwenhu/anaconda2/envs/py36/envs/snakemake/bin/python"
+    description: "python path for scrublet/doubletDection"
+    type: string
+
 
