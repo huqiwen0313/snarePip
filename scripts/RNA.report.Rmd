@@ -1,0 +1,211 @@
+---
+title: 'SNARE-seq RNA report'
+output:
+  html_document:
+    df_print: kable
+    theme: cerulean
+  pdf_document: default
+---
+<!--
+Input parameters:
+  * d: data, obtained after dropEst run.
+  * mit_genes: list of mitochondrion genes. Optional.
+  * tags_data: list of data, obrained after dropTag run. Optional.
+-->
+
+```{r, include=FALSE}
+#Sys.setenv(RSTUDIO_PANDOC="/usr/lib/rstudio-server/bin/pandoc")
+library(ggplot2)
+library(dplyr)
+library(dropestr)
+library(DropletUtils)
+library(Matrix)
+library(pagoda2)
+library(igraph)
+library(conos)
+library(Seurat)
+#knitr::opts_chunk$set(fig.width=5, fig.height=3, echo=FALSE, warning=FALSE, message=FALSE)
+#ggplot2::theme_set(ggplot2::theme_bw(base_size = 16) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)))
+
+PrintVectorAsTibble <- function(vector, col.names, top.print.size=10) {
+  df.func <- if (require(tibble)) tibble else data.frame
+  vector <- sort(vector, decreasing=T)
+  res <- df.func(names(vector[1:top.print.size]), as.vector(vector[1:top.print.size]))
+  colnames(res) <- col.names
+  return(res)
+}
+set.seed(1)
+```
+
+```{r}
+umi_counts <- sort(Matrix::colSums(cm), decreasing=T) ###############cm covert to d
+```
+## Basic QC
+
+### Common info
+```{r, fig.width=6, fig.height=5}
+PlotGenesPerCell(cm)
+smoothScatter(x=Matrix::colSums(cm > 0), y=Matrix::colSums(cm), 
+              xlab="#Genes per cell", ylab="#UMIs per cell", las=1)
+```
+
+### Number of cells
+
+```{r, fig.width=4.5, fig.height=3.5}
+#PlotCellsNumberLine(d$aligned_umis_per_cell, breaks=80, title=NULL, estimate.cells.number=T)
+PlotCellsNumberLine(merged_umis_per_cell, breaks=80, title=NULL, estimate.cells.number=T)
+```
+
+```{r, fig.width=4.5, fig.height=3.5}
+PlotCellsNumberHist(merged_umis_per_cell, breaks=60, estimate.cells.number=T, show.legend=F)
+```
+
+```{r, fig.width=5, fig.height=3}
+if(length(which(merged_umis_per_cell==0))>0){
+  merged_umis_per_cell <- merged_umis_per_cell[-which(merged_umis_per_cell==0)]
+}
+PlotCellsNumberLogLog(merged_umis_per_cell, T, show.legend=F)
+```
+
+### Cell Quality 
+
+```{r, fig.width=4.5, fig.height=4, error=TRUE}  
+#error = TRUE to skip error report here. 
+PlotCellScores(scores, main=paste0('Cell scores (', sum(scores > 0.9), ' cells > 0.9)'), y.threshold=0.9)
+
+PlotCellScores_logX<-function (scores, cells.number = NULL, y.threshold = NULL, main = NULL, 
+    bandwidth = c(length(scores)/100, 0.008)) 
+{
+    smoothScatter(log10(1:length(scores)), scores, bandwidth = bandwidth, xlab = "log10(Cell rank)", 
+        ylab = "Quality score", cex.lab = 1.4, main = main)
+    if (!is.null(cells.number)) {
+        abline(v = cells.number$min, lty = 2)
+        abline(v = cells.number$max, lty = 2)
+    }
+    if (!is.null(y.threshold)) {
+        abline(h = y.threshold, col = ggplot2::alpha("red", 0.7), 
+            lw = 1.5)
+    }
+}
+
+PlotCellScores_logX(scores, main=paste0('Cell scores (', sum(scores > 0.9), ' cells > 0.9)'), y.threshold=0.9)
+
+```
+
+```{r, fig.width=4.5, fig.height=4}
+mit_genes<- read.table("/home/qiwenhu/software/snarePip/conf/MT_gene.list")$V1
+if (exists("mit_genes")) {
+  FractionSmoothScatter(GetGenesetFraction(cm, mit_genes), plot.threshold=T, main='Mirochondrial fraction')
+}
+
+
+FractionSmoothScatter_logX<-function (fraction, plot.threshold = F, main = "") 
+{
+    smoothScatter(log10(1:length(fraction)), fraction, xlab =  "log10(Cell rank)", ylab = "Fraction", 
+        main = main, cex.lab = 1.4)
+    if (is.logical(plot.threshold) && plot.threshold) {
+        plot.threshold <- median(fraction) + 4 * mad(fraction)
+    }
+    if (is.numeric(plot.threshold)) {
+        abline(h = plot.threshold, lty = 2, lw = 1.5)
+    }
+}
+
+if (exists("mit_genes")) {
+  FractionSmoothScatter_logX(GetGenesetFraction(cm, mit_genes), plot.threshold=T, main='Mirochondrial fraction')
+}
+
+
+```
+
+### UMIs per gene
+```{r, fig.width=4.5, fig.height=4}
+umi_per_gene_probs <- dropestr::ValueCounts(cm@x, return_probs=T) %>%
+  tibble(UmiProb=., NUmis=as.integer(names(.))) %>% arrange(NUmis) %>%
+  filter(UmiProb > 5e-4)
+
+ggplot(umi_per_gene_probs) + geom_bar(aes(x=NUmis, y=1 - cumsum(UmiProb)), stat="identity", width=0.7) +
+  labs(x='#UMIs per gene', y='Fraction of genes\nwith larger #UMIs')
+```
+
+### Top genes
+```{r}
+PrintVectorAsTibble(Matrix::rowSums(cm), c('Gene', '#Molecules'))
+```
+
+### Filtered matrix summary
+```{r, message = FALSE}
+#read in the input data matrix
+print(paste("There are",dim(cmFiltered)[1],"genes in the input data"))
+print(paste("There are",dim(cmFiltered)[2],"cells in the input data"))
+```
+
+### Distribution of molecules per cell and molecules per gene for this dataset in log10 scale
+```{r, fig.width=12, fig.height=6}
+# Qiwen's edit
+par(mfrow=c(1,2), mar = c(3.5,3.5,2.0,0.5), mgp = c(2,0.65,0), cex = 1.0)
+hist(log10(Matrix::colSums(cmFiltered)+1),main='molecules per cell',col='cornsilk',xlab='log10(molecules per cell)')
+hist(log10(Matrix::rowSums(cmFiltered)+1),main='molecules per gene',col='cornsilk',xlab='log10(molecules per gene])')
+```
+
+### Summary of low quality cells and lowly expressed genes
+```{r, fig.width=12, fig.height=6}
+
+if(dim(cmFiltered)[2]>1){
+# Qiwen's edit
+counts <- gene.vs.molecule.cell.filter(cmFiltered, min.cell.size=10)
+counts <- counts[Matrix::rowSums(counts)>=10, ]
+}else{
+  
+  counts<-as.data.frame(c(1))
+}
+```
+
+## Basic analysis
+```{r, include=FALSE}
+if(length(dim(counts)[2]) > 0){
+  if(dim(counts)[2]>500){
+    # Qiwen's edit
+    rownames(counts) <- make.unique(rownames(counts))         #make the gene names unique (in case there are duplicated gene names)
+    r <- Pagoda2$new(counts,log.scale=TRUE, n.cores=10)
+    r$adjustVariance(plot=F, gam.k=10)
+    r$calculatePcaReduction(nPcs=50, n.odgenes=3e3)
+    r$makeKnnGraph(k=30, type='PCA', center=T, distance='cosine')
+  }
+}
+
+```
+
+### Clustering
+```{r, fig.width=8, fig.height=4, message=FALSE}
+if(length(dim(counts)[2]) > 0){
+if(dim(counts)[2]<500){
+  plot(c(0, 1), c(0, 1), bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n', xlab = "", ylab = "",
+       main = paste0("Only ",dim(counts)[2], " cell(s) after filtering"))
+}else{
+r$makeKnnGraph(k=40,type='PCA',center=T,distance='cosine')
+r$getKnnClusters(method=multilevel.community, type='PCA')
+r$getEmbedding(type='PCA',embeddingType='tSNE',perplexity=10,verbose=F)
+
+par(mfrow=c(1,2))
+r$plotEmbedding(type='PCA',embeddingType='tSNE',show.legend=F,mark.clusters=T,
+                min.group.size=1,shuffle.colors=F,mark.cluster.cex=1,alpha=0.1,main='RNA clusters (tSNE)')
+r$plotEmbedding(type='PCA',embeddingType='tSNE',colors=r$depth,shuffle.colors=F,mark.cluster.cex=1,alpha=0.1,main='Read depth')
+}
+}
+```
+
+### Differential expression between clusters
+```{r, fig.width=12, fig.height=10, dpi=600, message=FALSE}
+if(length(dim(counts)[2]) > 0){
+if(dim(counts)[2]<500){
+  plot(c(0, 1), c(0, 1), bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n', xlab = "", ylab = "",
+       main = paste0("Only ",dim(counts)[2], " cell(s) after filtering"))
+}else{
+de.info=suppressMessages(r$getDifferentialGenes(type='PCA',verbose=T, clusterType='community',append.auc=T, upregulated.only=TRUE))    
+plotDEheatmap(r, groups=r$clusters$PCA$community, de=de.info, ordering="-AUC", n.genes.per.cluster = 5, row.label.font.size = 7, border=FALSE, use_raster=T, 
+              #raster_device='CairoPNG')
+              raster_device='png')
+}
+}
+```
