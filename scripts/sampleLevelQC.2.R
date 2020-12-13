@@ -364,7 +364,7 @@ if(!is.null(RNAdir)){
   saveRDS(RNAcount.dual, file.path(rnaDual.dir, paste(sampleID, "sample_matrix_dual.rds", sep=".")))
   
   # p2 object
-  rnaP2.dual <- p2proc(RNAcount.dual, n.cores=20, min.cells.per.gene=5, min.cell.size=200, n.odgenes=2e3, 
+  rnaP2.dual <- snarePip:::p2proc(RNAcount.dual, n.cores=20, min.cells.per.gene=5, min.cell.size=200, n.odgenes=2e3, 
                        get.largevis=FALSE, make.geneknn=FALSE, perplexity=50, log.scale = TRUE, 
                        batch = NULL, nPcs = 30, k = 30, get.tsne = TRUE)
   # doublet score
@@ -388,7 +388,7 @@ if(!is.null(RNAdir)){
   #RNA QCs
   aligned_UMIs_per_cell <- Matrix::colSums(RNAcount.dual.copy)
   median_UMIs_per_cell <- median(aligned_UMIs_per_cell)
-  percent_read_mapping_to_mitochrondrial<- round(GetGenesetFraction_overall(RNAcount.dual.copy, mit_genes), 4)
+  percent_read_mapping_to_mitochrondrial<- round(snarePip:::GetGenesetFraction_overall(RNAcount.dual.copy, mit_genes), 4)
   median_fraction_read_in_mitochondrial <- round(median(GetGenesetFraction(RNAcount.dual.copy, mit_genes)), 4)
   qc.stat <- c(median_UMIs_per_cell, median_fraction_read_in_mitochondrial,
                percent_read_mapping_to_mitochrondrial, sample_quality,
