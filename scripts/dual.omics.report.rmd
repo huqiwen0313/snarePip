@@ -1,0 +1,179 @@
+---
+title: "SNARE-seq dual omics report"
+output: html_document
+params:
+  ATACpath:
+    value: x
+  RNApath:
+    value: x
+  sampleID:
+    value: x
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+      echo    = FALSE
+    , warning = FALSE
+    , message = FALSE
+)
+```
+
+```{r, include=FALSE}
+library(SnapATAC)
+library(pagoda2)
+library(GenomicRanges)
+library(snarePip)
+library(ggplot2)
+library(conos)
+library(chromfunks)
+
+atac.dual.dir <- file.path(params$ATACpath, params$sampleID, "Sample_output", "dual_omics")
+rna.dual.dir <- file.path(params$RNApath, params$sampleID, "Sample_output", "dual_omics")
+RNAp2 <- readRDS(file.path(rna.dual.dir, paste(params$sampleID, "p2.dual.rds", sep=".")))
+sampleID <- params$sampleID
+
+if(file.exists(file.path(atac.dual.dir, paste(params$sampleID, "p2_dual.rds", sep=".")))){
+  atacPagoda <- readRDS(file.path(atac.dual.dir, paste(params$sampleID, "p2_dual.rds", sep=".")))
+  ncell <- nrow(atacPagoda[["pmat"]])
+} else{
+  ncell <- 0
+}
+```
+# QC statistics
+
+## RNA
+```{r, include=TRUE}
+rna.qc <- read.table(file.path(rna.dual.dir, paste(sampleID, "rna.dual.qc.txt", sep=".")), sep="\t")
+colnames(rna.qc) <- c("measurements", "stat")
+print(rna.qc[1:4, ])
+print(paste("pagoda app address:", rna.qc[5, 2], sep=" "))
+```
+
+## ATAC
+```{r, include=TRUE}
+atac.qc <- read.table(file.path(atac.dual.dir, paste(sampleID, "dual.qc.txt", sep=".")), sep="\t")
+colnames(atac.qc) <- c("measurements", "stat")
+atac.qc
+```
+
+### Compare with snare-RNA
+```{r, fig.width=8, fig.height=4, echo=FALSE, results='hide'}
+if(ncell>500){
+if(length(atacPagoda[["RNAcount"]]) > 0){
+  p1 <- plotSnareBarcodeComparison(atacPagoda)
+  cellsize <- Matrix::rowSums(RNAp2$misc$rawCounts)
+  df <- data.frame(cells=names(cellsize), size=cellsize)
+  p2 <- ggplot(df, aes(x=log(cellsize))) + geom_histogram(color="darkblue", fill="lightblue") + xlab("Distribution of cell Size - log scale") +
+    ylab(" ") + theme_bw()
+  cowplot::plot_grid(plotlist=list(p1, p2), ncol=2)
+}
+}
+```
+
+# Basic data exploration
+### Embedding
+```{r, fig.width=15, fig.height=5, echo=FALSE, results='hide'}
+if(ncell > 500){
+  RNAp2$getKnnClusters(method=walktrap.community,type='PCA',name='walktrap')
+  par(mfrow=c(1,3))
+  RNAp2$plotEmbedding(type='PCA', groups=RNAp2$clusters$PCA$walktrap, embeddingType='tSNE',show.legend=F,mark.clusters=T,
+                min.group.size=1,shuffle.colors=F,mark.cluster.cex=1, alpha=0.3,main='RNA clusters')
+  RNAp2$plotEmbedding(type='PCA',embeddingType='tSNE',colors=RNAp2$depth,shuffle.colors=F,mark.cluster.cex=1 ,alpha=0.3,main='Read depth')
+
+  clusters <- RNAp2$clusters$PCA$walktrap
+
+  ExpIDs <- gsub("_.*", "", names(clusters))
+  ExpIDs <- setNames(ExpIDs, names(clusters))
+  RNAp2$plotEmbedding(type='PCA', groups=ExpIDs, embeddingType='tSNE',show.legend=T, mark.clusters=F,
+                min.group.size=1,shuffle.colors=F,mark.cluster.cex=1,alpha=0.2, main='colored by sample')
+}
+```
+
+### RNA sample composition plot
+```{r, fig.width=10, fig.height=8, echo=FALSE, results='hide'}
+if(ncell>500){
+ snarePip:::plotCompositionBarplots(clusters, sample.factor=ExpIDs, show.entropy=TRUE,show.size=TRUE, show.composition=TRUE,legend.height=0.1)
+}
+```
+
+### Marker genes expression
+```{r, fig.width=15, fig.height=10, echo=FALSE, results='hide'}
+if(ncell>500){
+marker.list <- read.table("/d0/data/ucsd/refs/marker.list.txt", sep="\t", header=FALSE)
+sample.prefix <- gsub("_.*", "", params$sampleID)
+marker.genes <- marker.list[marker.list[, 4] %in% sample.prefix, ]
+  
+par(mfrow=c(ceiling(nrow(marker.genes)/3), 3))
+  lapply(1:nrow(marker.genes), function(r){
+    gene <- marker.genes[r, 3]
+    if(length(which(colnames(RNAp2$counts) == gene)) > 0){
+      RNAp2$plotEmbedding(type='PCA',embeddingType='tSNE',colors=RNAp2$counts[, gene], shuffle.colors=F,mark.cluster.cex=1, alpha=0.3, main=paste(gene, marker.genes[r, 2], sep=" "))
+    }
+  })
+}
+```
+
+### Differential expression between clusters
+```{r, fig.width=12, fig.height=10, dpi=600, message=FALSE}
+if(ncell>500){
+if(dim(RNAp2$counts)[2]<500){
+  plot(c(0, 1), c(0, 1), bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n', xlab = "", ylab = "",
+       main = paste0("Only ",dim(counts)[2], " cell(s) after filtering"))
+}else{
+de.info=suppressMessages(RNAp2$getDifferentialGenes(type='PCA',verbose=T, clusterType='multilevel',append.auc=T, upregulated.only=TRUE))    
+
+# remove high fe genes
+de.info <- lapply(de.info, function(r){
+  r[r$fe<0.99, ]
+})
+
+plotDEheatmap(RNAp2, groups=RNAp2$clusters$PCA$multilevel, de=de.info, ordering="-AUC", n.genes.per.cluster = 5, row.label.font.size = 7, border=FALSE, use_raster=T, raster_device='png')
+}
+}
+```
+
+### Differentially accessible regions (DARs)
+#### DARs were identified based on differential analysis among clusters. Positive peaks of a single cluster were compared to backgroud cells to identy sites with differential accessibility. The figures below show the acessibility score for each cluster based on identified DARs in top clusters
+```{r, fig.width=12, fig.height=12, echo=FALSE, results='hide'}
+if(ncell > 500){
+library(chromfunks)
+require(Matrix)
+clusters <- RNAp2$clusters$PCA$multilevel
+nclusters <- as.numeric(levels(as.factor(clusters)))
+nclusters <- nclusters[1:min(10, length(nclusters))]
+par(mfrow=c(ceiling(length(nclusters)/3), 3))
+pmat <- atacPagoda[["pmat"]]
+pmat@x[pmat@x > 1] <- 1
+pmat <- pmat[rownames(pmat) %in% names(clusters), ]
+DAR <- chromfunks::CalcDiffAccess(t(pmat), clusters)
+
+cutoff <- 0.1
+lapply(nclusters, function(r){
+  clusterID <- r
+  dar <- DAR[[r]]
+  diffPeaks <- rownames(dar[which(dar$qval < cutoff | dar$pval<cutoff), ])
+  if(length(diffPeaks)>1){
+     covs = Matrix::rowSums(atacPagoda[["pmat"]])
+     vals = Matrix::rowSums(atacPagoda[["pmat"]][, which(colnames(atacPagoda[["pmat"]]) %in% diffPeaks)]) / covs
+     vals.zscore = (vals - mean(vals)) / sd(vals)
+  RNAp2$plotEmbedding(type='PCA',embeddingType='tSNE',colors=vals.zscore, shuffle.colors=F,mark.cluster.cex=1,alpha=0.3, 
+                      main=paste("cluster", r, sep=" "), cex=0.5)
+  }
+})
+}
+```
+
+### Distribution of DAR regions
+```{r, fig.width=8, fig.height=5, echo=FALSE, results='hide'}
+if(ncell>500){
+  atacPagoda[["DAR"]] <- DAR
+  plotDARoverlap(atacPagoda, use.pvalues=TRUE, cutoff=cutoff)
+}
+```
+
+### Top representative motifs in DAR regions
+```{r, fig.width=15, fig.height=15, echo=FALSE, results='hide'}
+if(ncell > 500){
+  plotTopMotifs(atacPagoda, ntop=3)
+}
+```

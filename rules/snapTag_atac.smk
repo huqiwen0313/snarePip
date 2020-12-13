@@ -11,7 +11,8 @@ rule snapTag_1:
     params:
         prefix = '{sample}',
         dir = 'tmp/snapTag',
-        script_dir = config['scripts_dir']
+        script_dir = config['scripts_dir'],
+        link_path = config['link_table']
 
     shell:
-        "perl {params.script_dir}/get_barcodes_by_pos_SNARE2.pl {input.r1} {input.r2} {input.r3} {params.prefix} {params.dir}"
+        "perl {params.script_dir}/get_barcodes_by_pos_SNARE2.pl {input.r1} {input.r2} {input.r3} {params.prefix} {params.dir} {params.link_path}"

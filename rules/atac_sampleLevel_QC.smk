@@ -9,9 +9,15 @@ rule QC_feature_13:
         atacDir = CURRENT_DIR,
         sampleID = '{sample_name}',
         RNAdir = config['rna_path'],
-        scripts_path = config['scripts_dir']
+        scripts_path = config['scripts_dir'],
+        reference_genome = config['genome_name'],
+        assay_type = config['assay_type'],
+        link_path = config['link_table'],
+        ref_dir = config['ref_dir'],
+        chromsize = config['chrom_size'],
+        scrublet_path = config['scrublet_path']
     run:
-        shell("Rscript {params.scripts_path}/sampleLevelQC.2.R {params.atacDir} {params.sampleID} {params.RNAdir} > {log}")
+        shell("Rscript {params.scripts_path}/sampleLevelQC.2.R {params.atacDir} {params.sampleID} {params.RNAdir} {params.reference_genome} {params.assay_type} {params.link_path} {params.ref_dir} {params.chromsize} {params.scrublet_path} > {log}")
 
 rule sample_QC_report_14:
     input:

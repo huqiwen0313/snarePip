@@ -85,5 +85,12 @@ properties:
     default: "/home/qiwenhu/anaconda2/envs/py36/envs/snakemake/bin/python"
     description: "python path for scrublet/doubletDection"
     type: string
-
+  ref_dir:
+    default: "/d0/data/ucsd/refs"
+    dscription: "path that contain reference files: hg38.blacklist.bed, promoters.bed, hg38.tss.bed and hg38.genes.gtf"
+    type: string
+  chrom_size:
+     default: "/d0/data/ucsd/refs/hg38.chrom.sizes"
+     description: "path to chrom size file"
+     type: string
 
