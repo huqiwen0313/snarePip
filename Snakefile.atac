@@ -20,7 +20,8 @@ PATTERN_R1 = '{sample}_R1.fastq.gz'
 PATTERN_R2 = '{sample}_R2.fastq.gz'   #barcode
 PATTERN_R3 = '{sample}_R3.fastq.gz'
 # get sample name
-SAMPLE_NAME = np.unique(np.array([re.sub(r'\..*', '', sample_name) for sample_name in SAMPLES])).tolist()
+SAMPLE_NAME = np.unique(np.array([re.sub(r'_N.*', '', sample_name) for sample_name in SAMPLES])).tolist()
+#SAMPLE_NAME = np.unique(np.array([re.sub(r'\..*', '', sample_name) for sample_name in SAMPLES])).tolist()
 TISSUE = link_table.loc[link_table['Experiment_ID_Short'].isin(SAMPLE_NAME), 'Tissue']
 TISSUE = np.unique(np.array(TISSUE)).tolist()
 
@@ -54,5 +55,5 @@ include: "rules/call_peaks_atac.smk"
 include: "rules/QC_atac.smk"
 include: "rules/merge_to_sampleLevel_atac.smk"
 include: "rules/peakcalling_sampleLevel_atac.smk"
-include: "rules/atat_sampleLevel_QC.smk"
+include: "rules/atac_sampleLevel_QC.smk"
 include: "rules/dual_omics.smk"

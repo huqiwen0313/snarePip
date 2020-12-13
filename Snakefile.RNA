@@ -37,7 +37,7 @@ rule all:
         expand('tmp/pagoda_RData/{sample}.filtered.RData', sample=SAMPLES),
         expand('tmp/reports/{sample}_dropEst_QC.html', sample=SAMPLES),
         expand(join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/obj/{sample_name}.sample_matrix.rds"), tissue=TISSUE, sample_name=SAMPLE_NAME),
-        sample_QCs = expand(join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/QCs/{sample_name}.QC.txt"), tissue=TISSUE, sample_name=SAMPLE_NAME)
+        sample_QCs = expand(join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/QCs/{sample_name}.qc.txt"), tissue=TISSUE, sample_name=SAMPLE_NAME)
 
 include: "rules/remove_contaminate.smk"
 include: "rules/RNA_fastqc.smk"
