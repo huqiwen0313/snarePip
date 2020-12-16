@@ -21,6 +21,10 @@ parser.add_argument("-sr", "--snakeRNA", default="Snakefile.RNA",
                     help="snakemake file for RNA processing")
 parser.add_argument("-sa", "--snakeATAC", default="Snakefile.ATAC",
                     help="snakemake file for ATAC processing")
+parser.add_argument("-sb", "--subtable", default="hubmap_submission",
+                    help="name of data submission table")
+parser.add_argument("-sc", "--ctable", default="contributor",
+                    help="name of contributor table")
 parser.add_argument("-b", "--build", action='store_true')
 args = parser.parse_args()
 
@@ -30,7 +34,15 @@ def main(arg=None):
         build([TargetFolder(
         folder_dir=args.RNAdir)], local_scheduler=True)
     else:
-        build([UpdateQC(
+        #build([snakemakeATAC(
+        #    RNAdir=args.RNAdir,
+        #    ATACdir=args.ATACdir,
+        #    sheet_name=args.sampletable,
+        #    worksheet=args.worksheet,
+        #    ncores=args.cores,
+        #    snakefileRNA=args.snakeRNA,
+        #    snakefileATAC=args.snakeATAC)], local_scheduler=True)
+        build([generateUploadFiles(
             RNAdir=args.RNAdir,
             ATACdir=args.ATACdir,
             sheet_name=args.sampletable,
@@ -40,6 +52,7 @@ def main(arg=None):
             snakefileATAC=args.snakeATAC,
             sindex=0,
             qcTableName=args.sampletable,
-            assayType=args.type
+            assayType=args.type,
+            cTableName=args.ctable
         )], local_scheduler=True)
- 
+
