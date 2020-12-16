@@ -1,0 +1,193 @@
+---
+title: "SNARE-seq ATAC QC and analysis report"
+output: html_document
+params:
+  directory:
+    value: x
+  file:
+    value: x
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+      echo    = FALSE
+    , warning = FALSE
+    , message = FALSE
+)
+```
+
+```{r, include=TRUE}
+library(SnapATAC)
+library(pagoda2)
+library(GenomicRanges)
+library(atacQC)
+library(ggplot2)
+library(conos)
+
+obj.dir <- file.path(params$directory, "objects")
+qc.dir <- file.path(params$directory, "QCs")
+sample.qc <- read.table(file.path(qc.dir, paste(params$file, "qc.txt", sep=".")), sep="\t", header=TRUE)
+colnames(sample.qc) <- c("measurements", "stat")
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+  atacPagoda <- readRDS(file.path(obj.dir, paste(params$file, "p2.obj.rds", sep=".")))
+  ncells <- nrow(atacPagoda[["pmat"]])
+} else{
+  ncells <- 0
+}
+```
+# QC report
+
+### General Statistics
+```{r, include=TRUE}
+sample.qc
+```
+
+#### Fragments Plots
+```{r, fig.width=8, fig.height=4, echo=FALSE}
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+  fragmentOverlapPeaksPlot(atacPagoda, plot=T)
+}
+```
+
+#### Fragment distribution
+```{r, fig.width=4.5, fig.height=4, echo=FALSE}
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+  PlotFragmentHist(atacPagoda)
+}
+```
+```{r, fig.width=4.5, fig.height=4, echo=FALSE}
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+  plotFragmentScatter(atacPagoda)
+}
+```
+
+### TSS enrichment
+#### Overall distribution
+```{r, fig.width=4.5, fig.height=4, echo=FALSE}
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+TSSenrichmentPlot(atacPagoda, plotGroup =F)
+hist(atacPagoda[["TSSenrichment"]], main="Distribution of TSS enrichment score", xlab="",
+     col='cornsilk')
+abline(v=2, col="red", lwd=3, lty=2)
+}
+```
+
+### Grouped by cell quality
+```{r pressure, fig.width=8, fig.height=4, echo=FALSE}
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+TSSenrichmentPlot(atacPagoda, plotGroup = TRUE)
+}
+```
+
+### Sequence saturation
+```{r, fig.width=4.5, fig.height=4, echo=FALSE}
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+  plotSaturation(atacPagoda)
+}
+```
+
+### Compare with snare-RNA
+```{r, fig.width=4.5, fig.height=4, echo=FALSE, results='hide'}
+if(sample.qc$stat[length(sample.qc$stat)] != "not Pass"){
+if(length(atacPagoda[["RNAcount"]]) > 0){
+  plotSnareBarcodeComparison(atacPagoda)
+}}
+```
+
+# Basic analysis
+### Number of significant components
+```{r, fig.width=4.5, fig.height=4, echo=FALSE}
+if(ncells > 100){
+  plotComponentVariancePagoda(atacPagoda)
+}
+```
+
+### ATAC clusters
+```{r, fig.width=4.5, fig.height=4, echo=FALSE, results='hide'}
+visDim <- 20
+
+if(ncells > 100){
+p2graph <- atacPagoda$graphs$PCA
+clusters <- as.factor(membership(conos::leiden.community(p2graph, resolution=2)))
+atacPagoda$reductions$PCA <- atacPagoda$reductions$PCA[, 1:visDim]
+atacPagoda$getEmbedding(type='PCA',embeddingType='tSNE',perplexity=20,verbose=F)
+atacPagoda$plotEmbedding(type='PCA',embeddingType='tSNE',groups=clusters,
+                    show.legend=F,mark.clusters=T,min.group.size=1,shuffle.colors=T, 
+                    mark.cluster.cex=1,alpha=0.5,main='ATAC clusters, tSNE', quiet=T)
+}
+
+```
+
+### Marker genes expression (on ATAC embedding)
+```{r, fig.width=15, fig.height=10, echo=FALSE, results='hide'}
+if(ncells>100){
+  if(length(nrow(atacPagoda[["RNAcount"]])) > 0){
+  marker.list <- read.table("/d0/data/ucsd/refs/marker.list.txt", sep="\t", header=FALSE)
+  sample.prefix <- gsub("_.*", "", params$file)
+  marker.genes <- marker.list[marker.list[, 4] %in% sample.prefix, ]
+  
+  par(mfrow=c(ceiling(nrow(marker.genes)/3), 3))
+  lapply(1:nrow(marker.genes), function(r){
+    gene <- marker.genes[r, 3]
+    if(length(which(colnames(atacPagoda[["RNAcount"]]) == gene)) > 0){
+     plotFeature(atacPagoda, features="gene", genename=gene, main=paste(gene, marker.genes[r, 2], sep=" "))
+    }
+  })
+ }
+}
+
+
+```
+
+### Marker genes expression (on RNA embedding)
+```{r, fig.width=15, fig.height=10, echo=FALSE, results='hide'}
+if(ncells>100){
+if(length(atacPagoda[["RNAp2obj"]]) > 0){
+  p2RNA <- atacPagoda[["RNAp2obj"]]
+  marker.list <- read.table("/d0/data/ucsd/refs/marker.list.txt", sep="\t", header=FALSE)
+  sample.prefix <- gsub("_.*", "", params$file)
+  marker.genes <- marker.list[marker.list[, 4] %in% sample.prefix, ]
+  #genelist <- marker.genes[, 3]
+  
+  par(mfrow=c(ceiling(nrow(marker.genes)/3), 3))
+  lapply(1:nrow(marker.genes), function(r){
+    gene <- marker.genes[r, 3]
+    if(length(which(colnames(p2RNA$counts) == gene)) > 0){
+      p2RNA$plotEmbedding(type='PCA',embeddingType='tSNE',colors=p2RNA$counts[, gene], shuffle.colors=F,mark.cluster.cex=1,alpha=0.5, main=paste(gene, marker.genes[r, 2], sep=" "))
+    }
+  })
+}}
+
+```
+
+### Differentially accessible regions (DARs)
+#### DARs were identified based on differential analysis among clusters. Positive peaks of a single cluster were compared to backgroud cells to identy sites with differential accessibility. The figures below show the acessibility score for each cluster based on identified DARs in top clusters
+```{r, fig.width=12, fig.height=12, echo=FALSE, results='hide'}
+if(ncells > 500){
+  atacPagoda <- idenDAR(atacPagoda, clusters, method="knn", test.method="lrt", bcv=0.4, n.cores=5)
+ nclusters <- as.numeric(levels(as.factor(clusters)))
+ nclusters <- nclusters[1:min(10, length(nclusters))]
+ par(mfrow=c(ceiling(length(nclusters)/3), 3))
+ lapply(nclusters, function(r){
+  clusterID <- r
+  plotFeature(atacPagoda, features="DAR", clusterID=r, main=paste("cluster", r, sep=" "), PvalCutoff=TRUE)
+})
+}
+
+```
+
+### Distribution of DAR regions
+```{r, fig.width=8, fig.height=6, echo=FALSE, results='hide'}
+if(ncells>500){
+  plotDARoverlap(atacPagoda, use.pvalues=TRUE, cutoff=0.05)
+}
+
+```
+
+
+### Top representative motifs in DAR regions
+```{r, fig.width=15, fig.height=15, echo=FALSE, results='hide'}
+if(ncells > 500){
+  plotTopMotifs(atacPagoda, ntop=3)
+}
+```

@@ -14,6 +14,11 @@ The current version of pipeline automatically processing single-cell RNA and ATA
 
 The entire framework is based on Directed acyclic graph (DAG) and [luigi](https://luigi.readthedocs.io/en/stable/) framework is used to build the DAG that connect data processing and meta-table part together with salted workflow for better version control.
 
+<p align="center"> 
+<img src="documentation/images/snarePip.dag.png" width="700"/>
+</p>
+
+**DAG of Snare-seq automated processing system**
 
 ## Installation
 Installation contains 2 parts, for meta-table and python related functions:
@@ -45,3 +50,6 @@ Arguments | Description
 `-c or --cores` | number of cores used to run snakemake pipeline.
 `-sr or --snakeRNA` | snakemake file for RNA processing.
 `-sa or --snakeATAC` | snakemake file for ATAC processing.
+`-t or --type` | assay type, e.g. snare_2, tenX.
+`-sb or --subtable` | name of data submission table.
+`-sc or --ctable` | name of contributor table.

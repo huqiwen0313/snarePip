@@ -23,7 +23,11 @@ rule report_8:
         rmd = config['scripts_dir'] + "/ATAC.report.experiment.level.html.rmd",
         rmdout = CURRENT_DIR + "/tmp/reports/{sample}.qc.report.html",
         RNAdir = config['rna_path'],
-        scripts_dir = config['scripts_dir']
+        scripts_dir = config['scripts_dir'],
+        assay_type = config['assay_type'],
+        link_path = config['link_table'],
+        ref_dir = config['ref_dir'],
+        reference_genome = config['genome_name']
     log:
         "tmp/logs/report_8.{sample}.log"
     run:
@@ -31,5 +35,5 @@ rule report_8:
         shell("if [ ! -d tmp/pmats ]; then mkdir tmp/pmats; fi")
         shell("if [ ! -d tmp/objects ]; then mkdir tmp/objects; fi")
         shell("if [ ! -d tmp/reports ]; then mkdir tmp/reports; fi")
-        shell("Rscript {params.scripts_dir}/generate.QC.report.3.R {params.outdir} {params.prefix} {params.RNAdir}")
+        shell("Rscript {params.scripts_dir}/generate.QC.report.3.R {params.outdir} {params.prefix} {params.RNAdir} {params.reference_genome} {params.assay_type} {params.link_path} {params.ref_dir}")
         shell("Rscript -e \"rmarkdown::render('{params.rmd}', params = list(directory = '{params.outdir}', file='{params.prefix}'), output_file = '{params.rmdout}')\" 2> {log}")

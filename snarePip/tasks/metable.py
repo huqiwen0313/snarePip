@@ -1,9 +1,11 @@
 import os
+import gspread
 import pandas as pd
 import numpy as np
 import re
+from luigi.util import inherits
 from luigi import ExternalTask, LocalTarget, Parameter, Task, IntParameter
-from snarePip.io import jsonkey_key_path, googlesheet_connection
+from snarePip.io import jsonkey_key_path, googlesheet_connection, get_qc_stat
 from snarePip.luigi.task import Requirement, Requires, TargetOutput, ListTarget
 
 
@@ -103,10 +105,4 @@ class CheckSample(Task):
         samples_df = process_samples_df.loc[process_samples_df['Experiment_ID'].isin(rna_processed_list + atac_processed_list)]
         samples_df['runid'] = None
         samples_df.to_csv(self.output().path, index=False, header=True)
-
-
-
-
-
-
 

@@ -84,7 +84,7 @@ class snakemakeATAC(Task):
         if not os.path.exists(os.path.join(self.ATACdir, "logs")):
             os.mkdir(os.path.join(self.ATACdir, "logs"))
         return LocalTarget(os.path.join(self.ATACdir, "logs",
-                                        "snakemakeATAC_summary_" + self.random_id + ".csv"))
+                                        "snakemakeATAC_summary" + ".csv"))
 
     def run(self):
         status = snakemake.snakemake(self.snakefileATAC,
@@ -104,14 +104,4 @@ class snakemakeATAC(Task):
             samples_run_df.loc[samples_run_df['Type'] == "ATAC", 'flag'] = 1
             samples_run_df.loc[samples_run_df['Type'] == "ATAC", 'runid'] = self.random_id
             samples_run_df.to_csv(self.input()['check_sample'].path, index=False, header=True)
-
-
-
-
-
-
-
-
-
-
 

@@ -18,7 +18,8 @@ SAMPLES, = glob_wildcards(join(FASTQ_DIR, "{sample}_R1.fastq.gz"))
 PATTERN_R1 = '{sample}_R1.fastq.gz'
 PATTERN_R2 = '{sample}_R2.fastq.gz'
 # get sample name
-SAMPLE_NAME = np.unique(np.array([re.sub(r'\..*', '', sample_name) for sample_name in SAMPLES])).tolist()
+SAMPLE_NAME = np.unique(np.array([re.sub(r'_N.*', '', sample_name) for sample_name in SAMPLES])).tolist()
+#SAMPLE_NAME = np.unique(np.array([re.sub(r'\..*', '', sample_name) for sample_name in SAMPLES])).tolist()
 TISSUE = link_table.loc[link_table['Experiment_ID_Short'].isin(SAMPLE_NAME), 'Tissue']
 TISSUE = np.unique(np.array(TISSUE)).tolist()
 
@@ -37,7 +38,7 @@ rule all:
         expand('tmp/pagoda_RData/{sample}.filtered.RData', sample=SAMPLES),
         expand('tmp/reports/{sample}_dropEst_QC.html', sample=SAMPLES),
         expand(join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/obj/{sample_name}.sample_matrix.rds"), tissue=TISSUE, sample_name=SAMPLE_NAME),
-        sample_QCs = expand(join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/QCs/{sample_name}.QC.txt"), tissue=TISSUE, sample_name=SAMPLE_NAME)
+        sample_QCs = expand(join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/QCs/{sample_name}.qc.txt"), tissue=TISSUE, sample_name=SAMPLE_NAME)
 
 include: "rules/remove_contaminate.smk"
 include: "rules/RNA_fastqc.smk"
