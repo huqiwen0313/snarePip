@@ -51,3 +51,5 @@ Arguments | Description
 `-sr or --snakeRNA` | snakemake file for RNA processing.
 `-sa or --snakeATAC` | snakemake file for ATAC processing.
 `-t or --type` | assay type, e.g. snare_2, tenX.
+`-sb or --subtable` | name of data submission table.
+`-sc or --ctable` | name of contributor table.
