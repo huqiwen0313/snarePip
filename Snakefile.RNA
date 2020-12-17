@@ -29,7 +29,7 @@ def get_sample_wildcards(wildcards):
 
 rule all:
     input:
-        expand('by_samples_fastq/{sample}_R1_filtered.fastq.gz', sample=SAMPLES),
+        expand(os.path.join(FASTQ_DIR, '{sample}_R1_filtered.fastq.gz'), sample=SAMPLES),
         expand('tmp/FastQC/{sample}_R1_filtered_fastqc.zip', sample=SAMPLES),
         expand('tmp/dropest_out/{sample}.mtx', sample=SAMPLES),
         expand('tmp/dropest_out/{sample}.genes.tsv', sample=SAMPLES),
