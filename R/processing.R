@@ -1,21 +1,27 @@
 # basic functions for data processing and transformation
 
 #' return sample library id based on experiment ID
-getLibID <- function(linkTable, sampleName){
-  RNAtable <- linkTable[grep("SPL-R|SNARE2-R", linkTable$Experiment_ID), ]
-  atacTable <- linkTable[grep("SPL-AC|SNARE2-AC", linkTable$Experiment_ID), ]
-  # RNA table
-  RNAtable$Experiment_ID <- gsub("[-|_]SPL-R", "", RNAtable$Experiment_ID)
-  RNAtable$Experiment_ID <- gsub("[-|_]SNARE2-R", "", RNAtable$Experiment_ID)
-  RNAtable$Experiment_ID <- gsub("_P\\d+", "", RNAtable$Experiment_ID)
+getLibID <- function(linkTable, sampleName, assayfix=FALSE){
   
-  # ATAC table
-  atacTable$Experiment_ID <- gsub("-SPL-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("_SNARE2-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("-SNARE2-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("_P[0-9]*", "", atacTable$Experiment_ID)
+  if(assayfix){
+    RNAtable <- linkTable[grep("SPL-R|SNARE2-R", linkTable$Experiment_ID), ]
+    atacTable <- linkTable[grep("SPL-AC|SNARE2-AC", linkTable$Experiment_ID), ]
+    # RNA table
+    RNAtable$Experiment_ID <- gsub("[-|_]SPL-R", "", RNAtable$Experiment_ID)
+    RNAtable$Experiment_ID <- gsub("[-|_]SNARE2-R", "", RNAtable$Experiment_ID)
+    RNAtable$Experiment_ID <- gsub("_P\\d+", "", RNAtable$Experiment_ID)
+    
+    # ATAC table
+    atacTable$Experiment_ID <- gsub("-SPL-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("_SNARE2-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("-SNARE2-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("_P[0-9]*", "", atacTable$Experiment_ID)
+    
+    linkSampleTable <- rbind(RNAtable, atacTable)
+  } else{
+    linkSampleTable <- linkTable
+  }
   
-  linkSampleTable <- rbind(RNAtable, atacTable)
   
   #
   sampleName <- gsub("-SPL.*Ad1", "_", sampleName)
@@ -29,21 +35,27 @@ getLibID <- function(linkTable, sampleName){
   return(libID)
 }
 
-getTissue <- function(linkTable, sampleName=NULL, libID=NULL){
-  RNAtable <- linkTable[grep("SPL-R|SNARE2-R", linkTable$Experiment_ID), ]
-  atacTable <- linkTable[grep("SPL-AC|SNARE2-AC", linkTable$Experiment_ID), ]
-  # RNA table
-  RNAtable$Experiment_ID <- gsub("[-|_]SPL-R", "", RNAtable$Experiment_ID)
-  RNAtable$Experiment_ID <- gsub("[-|_]SNARE2-R", "", RNAtable$Experiment_ID)
-  RNAtable$Experiment_ID <- gsub("_P\\d+", "", RNAtable$Experiment_ID)
+getTissue <- function(linkTable, sampleName=NULL, libID=NULL, assayfix=FALSE){
   
-  # ATAC table
-  atacTable$Experiment_ID <- gsub("-SPL-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("_SNARE2-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("-SNARE2-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("_P[0-9]*", "", atacTable$Experiment_ID)
+  if(assayfix){
+    RNAtable <- linkTable[grep("SPL-R|SNARE2-R", linkTable$Experiment_ID), ]
+    atacTable <- linkTable[grep("SPL-AC|SNARE2-AC", linkTable$Experiment_ID), ]
+    # RNA table
+    RNAtable$Experiment_ID <- gsub("[-|_]SPL-R", "", RNAtable$Experiment_ID)
+    RNAtable$Experiment_ID <- gsub("[-|_]SNARE2-R", "", RNAtable$Experiment_ID)
+    RNAtable$Experiment_ID <- gsub("_P\\d+", "", RNAtable$Experiment_ID)
+    
+    # ATAC table
+    atacTable$Experiment_ID <- gsub("-SPL-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("_SNARE2-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("-SNARE2-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("_P[0-9]*", "", atacTable$Experiment_ID)
+    
+    linkSampleTable <- rbind(RNAtable, atacTable)
+  } else{
+    linkSampleTable <- linkTable
+  }
   
-  linkSampleTable <- rbind(RNAtable, atacTable)
   if(!is.null(sampleName)){
     tissue <- unique(linkSampleTable[linkSampleTable$Experiment_ID_Short==sampleName, ]$Tissue)
     return(tissue)
