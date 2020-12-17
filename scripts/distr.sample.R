@@ -127,9 +127,11 @@ for(i in 1:length(files)){
       lapply(1:length(folder.files), function(r){
         # get full name experiment ID
         sampleid <- gsub("_S\\d+.*", "_S", folder.files[r])
+        sampleid <- gsub("[.].*", "", folder.files[r])
         libID <- snarePip:::getLibID(link.table, sampleid)
         if(length(libID) > 0){
           surfix <- gsub(".*_S\\d+.", "", folder.files[r])
+          surfix <- gsub(".*\\d+.", "", folder.files[r])
           sample.files <- file.path(tmp.path, paste(folders[j], folder.files[r], sep="/"))
           target.files <- file.path(expDir, 
                                     paste(folders[j], paste(libID, surfix, sep="."), sep="/"))
