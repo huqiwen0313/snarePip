@@ -62,10 +62,13 @@ class GetNewSample(Task):
         samples_df = pd.DataFrame(sheet.get_all_records(head=True))
 
         # get new samples need to be process
-        process_samples_df = samples_df.loc[samples_df['flag'] == '']
-        process_samples_df['Experiment_ID'] = list(map(lambda st: re.sub("SNARE2.*_", "", st),
-                                                       process_samples_df['Experiment_ID']))
-        process_samples_df.to_csv(self.output().path, index=False, header=True)
+        # process_samples_df = samples_df.loc[samples_df['flag'] == '']
+        # process_samples_df['Experiment_ID'] = list(map(lambda st: re.sub("SNARE2.*_", "", st),
+        #                                              process_samples_df['Experiment_ID']))
+        # process_samples_df.to_csv(self.output().path, index=False, header=True)
+
+        # download sample-table
+        samples_df.to_csv(self.output().path, index=False, header=True, sep="\t")
 
 
 class CheckSample(Task):
@@ -91,7 +94,12 @@ class CheckSample(Task):
         return LocalTarget(os.path.join(tmp_dir, "runlist.csv"))
 
     def run(self):
-        process_samples_df = pd.read_csv(self.input()['newSample'].path, sep=",")
+        samples_df = pd.read_csv(self.input()['newSample'].path, sep="\t", na_filter=False)
+        # get new samples need to be process
+        process_samples_df = samples_df.loc[samples_df['flag'] == '']
+        process_samples_df['Experiment_ID'] = list(map(lambda st: re.sub("SNARE2.*_", "", st),
+                                                       process_samples_df['Experiment_ID']))
+
         rna_sample_list = self.input()['rnaSamples_folder'].getobj()
         atac_sample_list = self.input()['atacSamples_folder'].getobj()
 
@@ -105,4 +113,3 @@ class CheckSample(Task):
         samples_df = process_samples_df.loc[process_samples_df['Experiment_ID'].isin(rna_processed_list + atac_processed_list)]
         samples_df['runid'] = None
         samples_df.to_csv(self.output().path, index=False, header=True)
-
