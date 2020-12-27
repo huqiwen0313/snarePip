@@ -6,7 +6,7 @@ properties:
     description: "path to the raw fastq files"
     type: string
   link_table:
-    default: "/d0/data/ucsd/refs/links.txt"
+    default: "/home/qiwenhu/software/snarePip/temp/process_samplelist.csv"
     description: "path to the link table - link sampleID with libID"
     type: string
   assay_type:
@@ -18,7 +18,7 @@ properties:
     description: "path to fastqc"
     type: string
   dropest_config:
-    default: "/home/qiwenhu/hubmap/pip/scripts/test_script/integrated/conf/split_seq.xml"
+    default: "/home/qiwenhu/software/snarePip/conf/split_seq.xml"
     description: "configure file from dropest"
     type: string
   index_file:
@@ -46,7 +46,7 @@ properties:
     description: "path to aligner tools for snaptools"
     type: string
   white_list:
-    default: "/home/qiwenhu/hubmap/pip/scripts/test_script/integrated/conf/whitelist"
+    default: "/home/qiwenhu/software/snarePip/conf/whitelist"
     description: "whitelist file"
     type: string
   scripts_dir:
