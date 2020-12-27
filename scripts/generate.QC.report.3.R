@@ -77,19 +77,24 @@ cellStatistics <- function(obj, overallStat=TRUE, n.cores=20){
 }
 
 # return RNA correspondent features
-linkSamples <- function(linkTable, atacSampleName){
-  RNAtable <- linkTable[grep("SPL-R|SNARE2-R", linkTable$Experiment_ID), ]
-  atacTable <- linkTable[grep("SPL-AC|SNARE2-AC", linkTable$Experiment_ID), ]
-  # RNA table
-  RNAtable$Experiment_ID <- gsub("[-|_]SPL-R", "", RNAtable$Experiment_ID)
-  RNAtable$Experiment_ID <- gsub("[-|_]SNARE2-R", "", RNAtable$Experiment_ID)
-  #RNAtable$Experiment_ID <- gsub("-SNARE2-R", "", RNAtable$Experiment_ID)
-  
-  # ATAC table
-  atacTable$Experiment_ID <- gsub("-SPL-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("_SNARE2-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("-SNARE2-AC", "", atacTable$Experiment_ID)
-  atacTable$Experiment_ID <- gsub("_P[0-9]*", "", atacTable$Experiment_ID)
+linkSamples <- function(linkTable, atacSampleName, assayfix=FALSE){
+  if(assayfix){
+    RNAtable <- linkTable[grep("SPL-R|SNARE2-R", linkTable$Experiment_ID), ]
+    atacTable <- linkTable[grep("SPL-AC|SNARE2-AC", linkTable$Experiment_ID), ]
+    # RNA table
+    RNAtable$Experiment_ID <- gsub("[-|_]SPL-R", "", RNAtable$Experiment_ID)
+    RNAtable$Experiment_ID <- gsub("[-|_]SNARE2-R", "", RNAtable$Experiment_ID)
+    #RNAtable$Experiment_ID <- gsub("-SNARE2-R", "", RNAtable$Experiment_ID)
+    
+    # ATAC table
+    atacTable$Experiment_ID <- gsub("-SPL-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("_SNARE2-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("-SNARE2-AC", "", atacTable$Experiment_ID)
+    atacTable$Experiment_ID <- gsub("_P[0-9]*", "", atacTable$Experiment_ID)
+  } else{
+    RNAtable <- linkTable[linkTable$Type=="RNA", ]
+    atacTable <- linkTable[linkTable$Type=="ATAC", ]
+  }
   
   sampleinfo <- merge(RNAtable, atacTable, by=c("Library_ID", "Project"))
   atacSampleName <- gsub("_S.*", "", atacSampleName)
@@ -116,7 +121,6 @@ reference_genome <- args[4]
 assay <- args[5]
 linktable <- read.table(args[6], sep="\t", header=TRUE)
 ref.dir <- args[7]
-print(ref.dir)
 
 # filtering cutoff
 tssenrichmentCutoff <- 0.15

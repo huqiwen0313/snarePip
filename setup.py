@@ -62,7 +62,7 @@ setup(
         "atomicwrites == 1.4.0",
         "luigi >= 3.0.0",
 	"pandas",
-	"snakemake",
+	"snakemake == 5.20.1",
 	"oauth2client",
 	"gspread",
 	"awscli",
