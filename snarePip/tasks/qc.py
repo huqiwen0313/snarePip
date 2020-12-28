@@ -37,7 +37,7 @@ class UpdateQC(Task):
         return LocalTarget(os.path.join(self.tmp_dir, "qclogs.csv"))
 
     def run(self):
-        runlist = pd.read_csv(os.path.join(self.tmp_dir, "runlist.csv"))
+        runlist = pd.read_csv(os.path.join(self.tmp_dir, "runlist.csv"), na_filter=False)
         # get finished sample ID
         samples = runlist['Experiment_ID_Short'].unique()
 
@@ -53,15 +53,15 @@ class UpdateQC(Task):
             rna_qc_sample = get_qc_stat(path=rna_path, sample_id=sample, level="sample")
 
             # get experiment/sample level ATAC QCs
-            atac_qc_experiment = get_qc_stat(path=atac_path, sample_id=sample, level="experiment")
-            atac_qc_sample = get_qc_stat(path=atac_path, sample_id=sample, level="sample")
+            atac_qc_experiment = get_qc_stat(path=atac_path, sample_id=sample, level="experiment", type="ATAC")
+            atac_qc_sample = get_qc_stat(path=atac_path, sample_id=sample, level="sample", type="ATAC")
 
             # updating qc tables
             # for RNA
             rna_experiment_sheet = self.input()['rna_experiement']
             rna_sample_sheet = self.input()['rna_sample']
             # update table
-            rna_sample_sheet.append_row(atac_qc_sample)
+            rna_sample_sheet.append_row(rna_qc_sample)
             logs.append(list(map(rna_experiment_sheet.append_row, rna_qc_experiment)))
 
             # for ATAC
@@ -72,8 +72,17 @@ class UpdateQC(Task):
 
         # update sample link table
         sample_table = self.input()['sample_table']
+        # update sample tables in corespondent columns
+        sample_table_df = pd.read_csv(os.path.join(self.tmp_dir, "process_samplelist.csv"),
+                                      sep="\t", na_filter=False)
+        # set values for processed samples
+        findex = sample_table_df[sample_table_df['Experiment_ID'].isin(runlist['Experiment_ID'])].index
+        sample_table_df.loc[findex, 'flag'] = runlist['flag']
+        sample_table_df.loc[findex, 'runid'] = runlist['runid']
+
         # need furthur modification to replace specific rows
-        logs.append(sample_table.update([runlist.columns.values.tolist()] + runlist.values.tolist()))
+        logs.append(sample_table.update([sample_table_df.columns.values.tolist()] + sample_table_df.values.tolist()))
+        
         # update uploading status
         runlist = pd.read_csv(os.path.join(self.tmp_dir, "runlist.csv"), sep=",")
         runlist['qcid'] = 1
