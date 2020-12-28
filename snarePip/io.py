@@ -61,7 +61,7 @@ def generate_random_id(length):
     return file_name
 
 
-def get_qc_stat(path, sample_id, level="sample"):
+def get_qc_stat(path, sample_id, level="sample", type="RNA"):
     """get qc statistics from a finished run
 
     Args:
@@ -75,8 +75,16 @@ def get_qc_stat(path, sample_id, level="sample"):
     qc_path = ""
     if level == "sample":
         qc_path = os.path.join(path, "Sample_output/QCs")
-        qc_stat = pd.read_csv(os.path.join(qc_path, sample_id + ".qc.txt"), sep="\t")
+        qc_stat = pd.read_csv(os.path.join(qc_path, sample_id + ".qc.txt"), sep="\t", 
+                header=None)
         qc_record = [sample_id, "finshed", "None", path] + qc_stat.iloc[:, 1].tolist()
+
+        if type == "ATAC":
+            dual_path = os.path.join(path, "Sample_output", "dual_omics")
+            dual_stat = pd.read_csv(os.path.join(dual_path, sample_id + ".dual.qc.txt"),
+                                    sep="\t", header=None)
+            qc_record = qc_record + dual_stat.iloc[:, 1].tolist()
+        
         return qc_record
 
     elif level == "experiment":
@@ -86,7 +94,7 @@ def get_qc_stat(path, sample_id, level="sample"):
         dfs = []
         for file in qc_files:
             experiment_id = re.sub(".qc.txt", "", file)
-            qc_stat = pd.read_csv(os.path.join(qc_path, file), sep="\t")
+            qc_stat = pd.read_csv(os.path.join(qc_path, file), sep="\t", header=None)
 
             # set column names and index
             qc_stat.set_index(list(qc_stat.columns[[0]]), inplace=True)
