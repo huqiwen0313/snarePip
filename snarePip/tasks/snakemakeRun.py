@@ -66,6 +66,9 @@ class snakemakeRNA(Task):
             samples_run_df.loc[samples_run_df['Type'] == "RNA", 'runid'] = self.random_id
             samples_run_df.to_csv(self.input()['check_sample'].path, index=False, header=True)
 
+        else:
+            raise Exception("snakemake running errors, please check log files for details")
+
 
 @inherits(snakemakeRNA)
 class snakemakeATAC(Task):
@@ -84,7 +87,7 @@ class snakemakeATAC(Task):
         if not os.path.exists(os.path.join(self.ATACdir, "logs")):
             os.mkdir(os.path.join(self.ATACdir, "logs"))
         return LocalTarget(os.path.join(self.ATACdir, "logs",
-                                        "snakemakeATAC_summary" + ".csv"))
+                                        "snakemakeATAC_summary" + self.random_id + ".csv"))
 
     def run(self):
         status = snakemake.snakemake(self.snakefileATAC,
@@ -104,4 +107,7 @@ class snakemakeATAC(Task):
             samples_run_df.loc[samples_run_df['Type'] == "ATAC", 'flag'] = 1
             samples_run_df.loc[samples_run_df['Type'] == "ATAC", 'runid'] = self.random_id
             samples_run_df.to_csv(self.input()['check_sample'].path, index=False, header=True)
+
+        else:
+            raise Exception("snakemake running errors, please check log files for details")
 
