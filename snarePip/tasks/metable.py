@@ -37,7 +37,7 @@ class TargetFolder(ExternalTask):
         # return list of raw fastq files
         fq_files = os.listdir(self.folder_dir)
         # get unique samples
-        samples = np.unique(list(map(lambda st: re.sub("_S.*", "", st), fq_files)))
+        samples = np.unique(list(map(lambda st: re.sub("_R.*", "", st), fq_files)))
         # replace "P\d" for some samples
         return ListTarget((map(lambda st: re.sub("\.P[\d+]", "", st), samples)))
 
