@@ -6,7 +6,8 @@ import re
 from snarePip.tasks.metable import *
 from snarePip.tasks.snakemakeRun import *
 from snarePip.io import prepare_submission
-
+import subprocess
+from datetime import datetime
 
 @inherits(snakemakeATAC)
 class UpdateQC(Task):
@@ -90,62 +91,23 @@ class UpdateQC(Task):
 
 
 @inherits(UpdateQC)
-class GetUploadSamples(Task):
-    """Get sample information and dirs that need to be uploaded """
-    # names of submission table contain sample uploading dirs
-    subTableName = Parameter(default="hubmap_submission")
-    tmp_dir = "./temp"
-
-    def requires(self):
-        return{
-            'submission': ContentMetaTable(sheetname=self.subTableName, worksheet=0),
-            'qc_pipeline': self.clone(UpdateQC)
-        }
-
-    def output(self):
-        if not os.path.exists(self.tmp_dir):
-            raise Exception("temp folder does not exist, please check ancestor tasks")
-
-        return LocalTarget(os.path.join(self.tmp_dir, "upload.logs.csv"))
-
-    def run(self):
-        temp_sample_file = os.path.join(self.tmp_dir, "runlist.csv")
-        # get processed_ids
-        processed_ids_df = pd.read_csv(temp_sample_file, sep=",")
-
-        # get submission table
-        submission_sheet = self.input()['submission']
-        submission_df = pd.DataFrame(submission_sheet.get_all_records(head=True))
-        submission_df['Globus location'] = [re.sub(r' ', r"\ ", i)
-                                            for i in submission_df['Globus location']]
-        submission_df = submission_df[['Experiment_ID_Short', 'Globus location']]
-
-        # merge tables and get samples with submission dir registered
-        submission_df_selected = pd.concat([processed_ids_df, submission_df], axis=1, join='inner')
-        submission_df_selected = submission_df_selected.loc[submission_df_selected['Globus location'] != '']
-        submission_df_selected.to_csv(self.output().path, index=False, header=True)
-
-
-@inherits(GetUploadSamples)
 class generateUploadFiles(Task):
     """prepare uploading folders"""
     # name of contributor table
     cTableName = Parameter(default="contributor")
-    # path to submission_metatable
-    #submission_meta = Parameter(default="./hubmap_meta.csv")
     tmp_dir = "./temp"
 
     def requires(self):
         return{
             'contributors': ContentMetaTable(sheetname=self.cTableName, worksheet=0),
-            'upload_log': self.clone(GetUploadSamples)
+            'qc_log': self.clone(UpdateQC)
         }
 
     def output(self):
         if not os.path.exists(self.tmp_dir):
             raise Exception("temp folder does not exist, please check ancestor tasks")
 
-        return LocalTarget(os.path.join(self.tmp_dir, "upload.log.txt"))
+        return LocalTarget(os.path.join(self.tmp_dir, "processed.folder.log.csv"))
 
     def run(self):
         # read contributor table
@@ -153,19 +115,70 @@ class generateUploadFiles(Task):
         contributor_df = pd.DataFrame(csheet.get_all_records(head=True))
 
         # get upload list
-        upload_df = pd.read_csv(self.input()['upload_log'].path, sep=",")
-        upload_rna = upload_df.loc[upload_df['Type'] == "RNA"]
-        upload_atac = upload_df.loc[upload_df['Type'] == "ATAC"]
+        temp_sample_file = os.path.join(self.tmp_dir, "runlist.csv")
+
+        # get processed_ids
+        processed_ids_df = pd.read_csv(temp_sample_file, sep=",")
+        upload_rna = processed_ids_df.loc[processed_ids_df['Type'] == "RNA"]
+        upload_atac = processed_ids_df.loc[processed_ids_df['Type'] == "ATAC"]
 
         if upload_rna.shape[0] > 0:
             rna_path = self.RNAdir
             atac_path = self.ATACdir
-            prepare_submission(rna_path, self.input()['upload_log'].path,
+            prepare_submission(rna_path, temp_sample_file,
                                contributor_df, type="RNA")
 
         if upload_atac.shape[0] > 0:
-            prepare_submission(atac_path, self.input()['upload_log'].path,
+            prepare_submission(atac_path, temp_sample_file,
                                contributor_df, type="ATAC")
 
-        upload_df["success"] = 1
-        upload_df.to_csv(self.output().path, index=False, header=True)
+        processed_ids_df["success"] = 1
+        processed_ids_df.to_csv(self.output().path, index=False, header=True)
+
+
+@inherits(generateUploadFiles)
+class CleanFiles(Task):
+    """Clean processed files """
+
+    tmp_dir = "./temp"
+
+    def requires(self):
+        return{
+            'processed_files': self.clone(generateUploadFiles)
+        }
+
+    def output(self):
+        if not os.path.exists(self.tmp_dir):
+            raise Exception("temp folder does not exist, please check ancestor tasks")
+
+        date_time = datetime.now().strftime("%d_%m_l%Y_%H_%M")
+        return LocalTarget(os.path.join(self.tmp_dir, date_time + "_processed.log.csv"))
+
+    def run(self):
+        # clean log files
+        rna_path = self.RNAdir
+        atac_path = self.ATACdir
+        subprocess.call("mv %s %s" % (os.path.join(rna_path, "tmp", "logs") + "/*", os.path.join(rna_path, "logs")),
+                        shell=True)
+        subprocess.call("mv %s %s" % (os.path.join(atac_path, "tmp", "logs") + "/*", os.path.join(atac_path, "logs")),
+                        shell=True)
+
+        # clean raw fastq files
+        subprocess.call("rm " + os.path.join(rna_path, "by_samples_fastq") + "/*",
+                        shell=True)
+        subprocess.call("rm " + os.path.join(atac_path, "by_samples_fastq") + "/*",
+                        shell=True)
+
+        # clean tmp folder
+        subprocess.call("rm " + os.path.join(rna_path, "tmp") + "/*" + " -rf",
+                        shell=True)
+        subprocess.call("rm " + os.path.join(atac_path, "tmp") + "/*" + " -rf",
+                        shell=True)
+
+        # clean temp folder
+        temp_sample_file = os.path.join(self.tmp_dir, "runlist.csv")
+        process_df = pd.read_csv(temp_sample_file, sep=",")
+        subprocess.call("rm " + self.tmp_dir + "/*",
+                        shell=True)
+        process_df.to_csv(self.output().path, index=False, header=True)
+
