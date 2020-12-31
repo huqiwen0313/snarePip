@@ -1,6 +1,7 @@
 from snarePip.tasks.snakemakeRun import snakemakeRNA, snakemakeATAC
 from snarePip.tasks.metable import TargetFolder
 from snarePip.tasks.qc import *
+from snarePip.tasks.upload import *
 from luigi import build
 import argparse
 
@@ -25,7 +26,10 @@ parser.add_argument("-sb", "--subtable", default="hubmap_submission",
                     help="name of data submission table")
 parser.add_argument("-sc", "--ctable", default="contributor",
                     help="name of contributor table")
+parser.add_argument("-sm", "--submeta", default="hubmap_submission_metatable",
+                    help="name of hubmap meta table for submission")
 parser.add_argument("-b", "--build", action='store_true')
+parser.add_argument("-up", "--upload", action='store_true')
 args = parser.parse_args()
 
 
@@ -33,16 +37,28 @@ def main(arg=None):
     if args.build:
         build([TargetFolder(
         folder_dir=args.RNAdir)], local_scheduler=True)
+    elif args.upload:
+        build([UploadSamples(
+            RNAdir=args.RNAdir,
+            ATACdir=args.ATACdir,
+            subTableName=args.subtable,
+            subTableMeta=args.submeta
+            )], local_scheduler=True)
     else:
-        #build([snakemakeATAC(
-        #    RNAdir=args.RNAdir,
-        #    ATACdir=args.ATACdir,
-        #    sheet_name=args.sampletable,
-        #    worksheet=args.worksheet,
-        #    ncores=args.cores,
-        #    snakefileRNA=args.snakeRNA,
-        #    snakefileATAC=args.snakeATAC)], local_scheduler=True)
         build([generateUploadFiles(
+            RNAdir=args.RNAdir,
+            ATACdir=args.ATACdir,
+            sheet_name=args.sampletable,
+            worksheet=args.worksheet,
+            ncores=args.cores,
+            snakefileRNA=args.snakeRNA,
+            snakefileATAC=args.snakeATAC,
+            sindex=0,
+            qcTableName=args.sampletable,
+            assayType=args.type,
+            cTableName=args.ctable
+        )], local_scheduler=True)
+        build([CleanFiles(
             RNAdir=args.RNAdir,
             ATACdir=args.ATACdir,
             sheet_name=args.sampletable,
