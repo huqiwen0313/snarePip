@@ -78,8 +78,8 @@ class UpdateQC(Task):
                                       sep="\t", na_filter=False)
         # set values for processed samples
         findex = sample_table_df[sample_table_df['Experiment_ID'].isin(runlist['Experiment_ID'])].index
-        sample_table_df.loc[findex, 'flag'] = runlist['flag']
-        sample_table_df.loc[findex, 'runid'] = runlist['runid']
+        sample_table_df.loc[findex, 'flag'] = runlist['flag'].tolist()
+        sample_table_df.loc[findex, 'runid'] = runlist['runid'].tolist()
 
         # need furthur modification to replace specific rows
         logs.append(sample_table.update([sample_table_df.columns.values.tolist()] + sample_table_df.values.tolist()))
