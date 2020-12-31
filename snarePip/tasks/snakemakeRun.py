@@ -87,7 +87,7 @@ class snakemakeATAC(Task):
         if not os.path.exists(os.path.join(self.ATACdir, "logs")):
             os.mkdir(os.path.join(self.ATACdir, "logs"))
         return LocalTarget(os.path.join(self.ATACdir, "logs",
-                                        "snakemakeATAC_summary" + self.random_id + ".csv"))
+                                        "snakemakeATAC_summary_" + self.random_id + ".csv"))
 
     def run(self):
         status = snakemake.snakemake(self.snakefileATAC,
