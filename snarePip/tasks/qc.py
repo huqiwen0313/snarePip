@@ -3,6 +3,7 @@ import gspread
 import pandas as pd
 import numpy as np
 import re
+import time
 from snarePip.tasks.metable import *
 from snarePip.tasks.snakemakeRun import *
 from snarePip.io import prepare_submission
@@ -44,6 +45,8 @@ class UpdateQC(Task):
 
         # get experiment and sample leve QCs
         logs = []
+        count = 0;
+        c = 0
         for sample in samples:
             tissue = runlist.loc[runlist['Experiment_ID_Short'] == sample]['Tissue'].unique()
             rna_path = os.path.join(self.RNAdir, self.assayType, tissue[0], "samples", sample)
@@ -64,12 +67,15 @@ class UpdateQC(Task):
             # update table
             rna_sample_sheet.append_row(rna_qc_sample)
             logs.append(list(map(rna_experiment_sheet.append_row, rna_qc_experiment)))
+            time.sleep(100)
 
             # for ATAC
             atac_experiment_sheet = self.input()['atac_experiement']
             atac_sample_sheet = self.input()['atac_sample']
             logs.append(atac_sample_sheet.append_row(atac_qc_sample))
             logs.append(list(map(atac_experiment_sheet.append_row, atac_qc_experiment)))
+            time.sleep(100)
+
 
         # update sample link table
         sample_table = self.input()['sample_table']
