@@ -40,7 +40,7 @@ count <- count[, colnames(count) %in% fcells]
 
 
 # doublet score
-if(dim(count)[2] > min.ncells){
+if(dim(count)[2] > min.cell.size){
   scrublescore <- snarePip:::GetScrubletScores(count, min.molecules.per.gene=1, method="scrublet",
                                     pythonPath=scrublet_path)
   doublet.detect <- snarePip:::GetScrubletScores(count, min.molecules.per.gene=10, method="doubletDetection",
