@@ -10,9 +10,10 @@ rule sample_level_peaks_10:
         rnaPath = config['rna_path'],
         gsize = "hs",
         scripts_path = config['scripts_dir'],
-        assay_type = config['assay_type']
+        assay_type = config['assay_type'],
+        sample_table = config['link_table']
     shell:
-        "Rscript {params.scripts_path}/sampleLevel.peakCalling.R {params.atacPath} {params.rnaPath} {params.sampleID} {params.path_to_macs} {params.gsize} {params.assay_type}"
+        "Rscript {params.scripts_path}/sampleLevel.peakCalling.R {params.atacPath} {params.rnaPath} {params.sampleID} {params.path_to_macs} {params.gsize} {params.assay_type} {params.sample_table}"
 
 rule merge_peaks_11:
     input:
