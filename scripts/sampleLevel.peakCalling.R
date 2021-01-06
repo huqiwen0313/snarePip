@@ -19,8 +19,9 @@ gsize <- args[5]
 assay <- args[6]
 
 ## read ref files
-link.dir <- "/d0/data/ucsd/refs"
-link.table <- read.table(file.path(link.dir, "links.txt"), sep="\t", header=TRUE)
+#link.dir <- "/d0/data/ucsd/refs"
+link.dir <- args[7]
+link.table <- read.table(args[7], sep="\t", header=TRUE)
 
 tissue <- snarePip:::getTissue(link.table, sampleName=sampleID)
 # read ATAC initial p2 object
@@ -31,13 +32,22 @@ rnaCountfile <- paste(file.path(RNApath, assay, tissue, "samples", sampleID), "S
                         paste(sampleID, "sample_matrix.rds", sep="."), sep="/")
 rnaCount <- readRDS(rnaCountfile)
 # generate p2 object
-rnaP2obj <- snarePip:::p2proc(rnaCount)
-atacP2obj[["RNAp2obj"]] <- rnaP2obj
-saveRDS(atacP2obj, file=atacP2file)
+if(ncol(rnaCount) > 500){
+  rnaP2obj <- snarePip:::p2proc(rnaCount)
+  atacP2obj[["RNAp2obj"]] <- rnaP2obj
+  saveRDS(atacP2obj, file=atacP2file)
+} 
+
   
 # call population based peaks
 # temporary based on multilevel clusters
-RNAclusters <- rnaP2obj$clusters$PCA$multilevel
+if(ncol(rnaCount) > 500){
+  RNAclusters <- rnaP2obj$clusters$PCA$multilevel
+} else{
+  RNAclusters <- setNames(rep("1", length(rownames(atacP2obj[["pmat"]]))), 
+                          rownames(atacP2obj[["pmat"]]))
+}
+
 out.dir <- paste(file.path(ATACpath, assay, tissue, "samples", sampleID), "Sample_output", "macs2", sep="/")
 peaks.gr <- callMACsCluster(atacP2obj, clusters=RNAclusters, path.to.macs, gsize,
                               out.dir=out.dir,
