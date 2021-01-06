@@ -83,7 +83,10 @@ def get_qc_stat(path, sample_id, level="sample", type="RNA"):
             dual_path = os.path.join(path, "Sample_output", "dual_omics")
             dual_stat = pd.read_csv(os.path.join(dual_path, sample_id + ".dual.qc.txt"),
                                     sep="\t", header=None)
-            qc_record = qc_record + dual_stat.iloc[:, 1].tolist()
+            if dual_stat.shape[1] > 1:
+                qc_record = qc_record + dual_stat.iloc[:, 1].tolist()
+            else:
+                qc_record = qc_record + dual_stat.iloc[0].tolist()
         
         return qc_record
 
