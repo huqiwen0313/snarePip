@@ -29,12 +29,12 @@ library(chromfunks)
 
 atac.dual.dir <- file.path(params$ATACpath, params$sampleID, "Sample_output", "dual_omics")
 rna.dual.dir <- file.path(params$RNApath, params$sampleID, "Sample_output", "dual_omics")
-RNAp2 <- readRDS(file.path(rna.dual.dir, paste(params$sampleID, "p2.dual.rds", sep=".")))
 sampleID <- params$sampleID
 
 if(file.exists(file.path(atac.dual.dir, paste(params$sampleID, "p2_dual.rds", sep=".")))){
   atacPagoda <- readRDS(file.path(atac.dual.dir, paste(params$sampleID, "p2_dual.rds", sep=".")))
   ncell <- nrow(atacPagoda[["pmat"]])
+  RNAp2 <- readRDS(file.path(rna.dual.dir, paste(params$sampleID, "p2.dual.rds", sep=".")))
 } else{
   ncell <- 0
 }
@@ -43,17 +43,21 @@ if(file.exists(file.path(atac.dual.dir, paste(params$sampleID, "p2_dual.rds", se
 
 ## RNA
 ```{r, include=TRUE}
-rna.qc <- read.table(file.path(rna.dual.dir, paste(sampleID, "rna.dual.qc.txt", sep=".")), sep="\t")
-colnames(rna.qc) <- c("measurements", "stat")
-print(rna.qc[1:4, ])
-print(paste("pagoda app address:", rna.qc[5, 2], sep=" "))
+if(ncell >0){
+  rna.qc <- read.table(file.path(rna.dual.dir, paste(sampleID, "rna.dual.qc.txt", sep=".")), sep="\t")
+  colnames(rna.qc) <- c("measurements", "stat")
+  print(rna.qc[1:4, ])
+  print(paste("pagoda app address:", rna.qc[5, 2], sep=" "))
+}
 ```
 
 ## ATAC
 ```{r, include=TRUE}
-atac.qc <- read.table(file.path(atac.dual.dir, paste(sampleID, "dual.qc.txt", sep=".")), sep="\t")
-colnames(atac.qc) <- c("measurements", "stat")
-atac.qc
+if(ncell > 0){
+  atac.qc <- read.table(file.path(atac.dual.dir, paste(sampleID, "dual.qc.txt", sep=".")), sep="\t")
+  colnames(atac.qc) <- c("measurements", "stat")
+  atac.qc
+}
 ```
 
 ### Compare with snare-RNA

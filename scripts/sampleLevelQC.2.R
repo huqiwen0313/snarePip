@@ -291,7 +291,8 @@ if(!is.null(RNAdir)){
 
   # read filtered rds
   RNAobj <- readRDS(RNAfile)
-  
+  RNAbarcodes <- colnames(RNAobj)
+  if(ncol(RNAobj) > 500){
   # push to pagoda2 and run quick clustering
   RNAp2 <- Pagoda2$new(RNAobj, log.scale=TRUE, n.cores=2)
   RNAp2$adjustVariance(plot=F, gam.k=10)
@@ -300,13 +301,13 @@ if(!is.null(RNAdir)){
   RNAp2$getKnnClusters(method=infomap.community, type='PCA')
   RNAp2$getEmbedding(type='PCA', embeddingType='tSNE', perplexity=50, verbose=F)
   
-  RNAbarcodes <- rownames(RNAp2$counts)
   atacbarcodes <- rownames(atacPagoda[["pmat"]])
   
   overlapRatio <- round(length(intersect(atacbarcodes, RNAbarcodes))/min(length(atacbarcodes), length(RNAbarcodes)), 2)
   atacPagoda[["RNAcount"]] <- RNAp2$counts
   atacPagoda[["RNAp2obj"]] <- RNAp2
  }
+}
 }
 
 if(stat[1, 2]>dual.ncells){
@@ -343,14 +344,15 @@ if(!file.exists(rnaDual.dir)){
 }
 
 if(!is.null(RNAdir)){
-  dual.cells <- intersect(atacbarcodes, RNAbarcodes)
-  atacP2.dual <- atacPagoda
-  dual.pmat <- atacPagoda[["pmat"]][rownames(atacPagoda[["pmat"]]) %in% dual.cells, ]
-  dual.cellstat <- cellstatFiltered[cellstatFiltered$barcode %in% dual.cells, ]
-  dual.tssenrichment <- atacPagoda[["TSSenrichment"]][names(atacPagoda[["TSSenrichment"]]) %in% dual.cells]
-  atacP2.dual[["TSSenrichment"]] <- dual.tssenrichment
-  atacP2.dual[["pmat"]] <- dual.pmat
-  atacP2.dual[["cellStat"]] <- dual.cellstat
+  if(length(RNAbarcodes) > dual.ncells){
+    dual.cells <- intersect(atacbarcodes, RNAbarcodes)
+    atacP2.dual <- atacPagoda
+    dual.pmat <- atacPagoda[["pmat"]][rownames(atacPagoda[["pmat"]]) %in% dual.cells, ]
+    dual.cellstat <- cellstatFiltered[cellstatFiltered$barcode %in% dual.cells, ]
+    dual.tssenrichment <- atacPagoda[["TSSenrichment"]][names(atacPagoda[["TSSenrichment"]]) %in% dual.cells]
+    atacP2.dual[["TSSenrichment"]] <- dual.tssenrichment
+    atacP2.dual[["pmat"]] <- dual.pmat
+    atacP2.dual[["cellStat"]] <- dual.cellstat
   
   ########### RNA part
   RNAcount <- readRDS(file.path(RNAdir, paste(sampleID, "Sample_output", 
@@ -455,6 +457,15 @@ if(!is.null(RNAdir)){
     #gene.act <- ciceroGeneActivity(input_cds, genome="hg38", chromsize)
     #atacP2.dual[["cicero"]] <- gene.act
     saveRDS(atacP2.dual, file.path(atacDual.dir, paste(sampleID, "p2_dual.rds", sep=".")))
+  }
+  }
+  else{
+    atac.qc.dual <- data.frame(quality = "Not pass")
+    write.table(atac.qc.dual, quote = FALSE, col.names = FALSE, row.names = FALSE, sep="\t", 
+                file.path(atacDual.dir, paste(sampleID, "dual.qc.txt", sep=".")))
+    rna.qc.stat <- data.frame(quality = "Not pass")
+    write.table(rna.qc.stat, quote = FALSE, col.names = FALSE, row.names = FALSE, sep="\t", 
+                file.path(rnaDual.dir, paste(sampleID, "rna.dual.qc.txt", sep=".")))
   }
 }
 

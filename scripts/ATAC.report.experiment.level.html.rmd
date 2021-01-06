@@ -188,6 +188,8 @@ if(ncells>500){
 ### Top representative motifs in DAR regions
 ```{r, fig.width=15, fig.height=15, echo=FALSE, results='hide'}
 if(ncells > 500){
-  plotTopMotifs(atacPagoda, ntop=3)
+  if(!is.null(dim(atacPagoda[["enrichedMotifs"]][[1]]))){
+     plotTopMotifs(atacPagoda, ntop=3)
+  }
 }
 ```
