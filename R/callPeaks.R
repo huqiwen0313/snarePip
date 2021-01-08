@@ -44,8 +44,13 @@ callMACs <- function(fragmentFileDir, output.prefix="", path.to.macs, gsize,
     system(paste("rm ", out.dir, "/", output.prefix, "_summits.bed", sep=""));
   }
 
-  peaks <- read.table(paste(out.dir, "/", output.prefix, "_peaks.narrowPeak", sep=""))
-  return(peaks)
+  peak.file <- paste(out.dir, "/", output.prefix, "_peaks.narrowPeak", sep="")
+  if(!file.size(peak.file) == 0){
+	  peaks <- read.table(paste(out.dir, "/", output.prefix, "_peaks.narrowPeak", sep=""))
+	  return(peaks)
+  } else{
+	  return(data.frame())
+  }
 }
 
 #' call peaks based on assigned cell clusters
@@ -69,7 +74,6 @@ callMACsCluster <- function(obj, clusters=NULL, path.to.macs, gsize,
   if(missing(gsize)){
     stop("gsize is missing");
   }
-
   frag.file <- obj[["fragmentsPaths"]]
   frag.dir <- strsplit(frag.file, split="/")[[1]]
   sampleName <- gsub(".fragments.bed", "", frag.dir[length(frag.dir)])
