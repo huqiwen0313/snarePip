@@ -200,7 +200,22 @@ GetScrubletScores <- function(mat, min.molecules.per.gene=10, pythonPath="./",
                               method=c("scrublet", "doubletDetection")) {
   tf.in <- tempfile()
   tf.out <- tempfile()
-  dt <- mat[Matrix::rowSums(mat)>=min.molecules.per.gene,] %>% Matrix::t() %>% as.matrix() %>% data.table::data.table()
+  
+  as_matrix <- function(mat){
+     temp <- matrix(data=0L, nrow = mat@Dim[1], ncol = mat@Dim[2])
+     prow <- mat@i+1
+     pcol <- findInterval(seq(mat@x)-1, mat@p[-1])+1
+     val <- mat@x
+     
+     for (i in seq_along(val)){
+      temp[prow[i], pcol[i]] <- val[i]
+    }
+    
+    row.names(temp) <- mat@Dimnames[[1]]
+    colnames(temp) <- mat@Dimnames[[2]]
+    return(temp)
+  }
+  dt <- mat[Matrix::rowSums(mat)>=min.molecules.per.gene,] %>% Matrix::t() %>% as_matrix() %>% data.table::data.table()
   data.table::fwrite(dt, file=tf.in)
   
   if(method=="scrublet"){
