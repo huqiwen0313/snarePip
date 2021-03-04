@@ -41,10 +41,10 @@ rule sample_snap_pre_12:
         genome_size = config['hs_csize'],
         bam = join(ASSAY, "{tissue}/samples/{sample_name}/Sample_output/bam/{sample_name}.bam")
     run:
-        shell("samtools sort -n -@ 15 -m 50000000000 -o {params.bam}.sorted.bam {params.bam}")
+        shell("samtools sort -n -@ 10 -m 20G -o {params.bam}.sorted.bam {params.bam}")
         shell("snaptools snap-pre --input-file='{params.bam}.sorted.bam' "
         "--output-snap='{output}' --genome-name='{params.genome_name}' "
         "--genome-size='{params.genome_size}' --min-mapq=30 --min-flen=0 --max-flen=1000 --keep-chrm=TRUE "
         "--keep-single=FALSE  --keep-secondary=FALSE --overwrite=True --min-cov=100 --verbose=True ")
         shell("snaptools snap-add-bmat --snap-file {output} --bin-size-list 1000 5000 10000 --verbose TRUE")
-        shell("snaptools snap-add-pmat --snap-file {output} --peak-file {input.peak}")
+        shell("/home/qiwenhu/anaconda2/bin/snaptools snap-add-pmat --snap-file {output} --peak-file {input.peak}")
