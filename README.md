@@ -72,7 +72,7 @@ Arguments | Description
 
 ## Pipeline Module
 <p align="center"> 
-<img src="documentation/images/pipeline.module.overview.jpg" width="750"/>
+<img src="documentation/images/pipeline.module.overview.jpg" width="800"/>
 </p>
 
 ## Meta-table structure
@@ -86,6 +86,6 @@ The format of hubmap_metatable is consistent with [hubmap guidelines](https://gi
 
 The relationship among different tables is shown below:
 <p align="center"> 
-<img src="documentation/images/database.relationship.bmp" width="700"/>
+<img src="documentation/images/database.relationship.bmp" width="800" height="400"/>
 </p>
 
