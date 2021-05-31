@@ -69,9 +69,10 @@ Arguments | Description
 `-sb or --subtable` | name of hubmap_submission table.
 `-sm or --submeta` | name of hubmap_submission_metatable.
 
+
 ## Pipeline Module
 <p align="center"> 
-<img src="documentation/images/pipeline.module.overview.jpg" width="700"/>
+<img src="documentation/images/pipeline.module.overview.jpg" width="750"/>
 </p>
 
 ## Meta-table structure
