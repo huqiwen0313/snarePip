@@ -21,6 +21,10 @@ The entire framework is based on Directed acyclic graph (DAG) and [luigi](https:
 **DAG of Snare-seq automated processing system**
 
 ## Installation
+#### Requirements
+* [dropestr](https://github.com/kharchenkolab/dropestr)
+* [SnapATAC](https://github.com/r3fang/SnapATAC)
+
 Installation contains 2 parts, for meta-table and python related functions:
 ```bash
 git clone https://github.com/huqiwen0313/snarePip.git
