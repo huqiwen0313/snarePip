@@ -32,7 +32,8 @@ snarePip R package for atac-seq QC and downstream analysis
 ```bash
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(c("Rsamtools", "edgeR"))
+BiocManager::install(c("Rsamtools", "edgeR", "DropletUtils", "ATACseqQC", "pcaMethods", "TFBSTools",
+                        "JASPAR2018", "motifmatchr", "BSgenome.Hsapiens.NCBI.GRCh38", "ComplexHeatmap"))
 
 install.packages("devtools")
 devtools::install_github("huqiwen0313/snarePip", ref="main")
