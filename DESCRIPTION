@@ -8,5 +8,12 @@ Description: atac/snare-seq QC and downstream analysis
 License: GNU
 Encoding: UTF-8
 LazyData: true
+Imports:
+  Seurat,
+  conos,
+  pagoda2,
+  tidytext,
+  fastqcr,
+  ggseqlogo
 LinkingTo: Rcpp (>= 0.11.0), RcppEigen
-RoxygenNote: 7.0.1
+RoxygenNote: 7.1.1
