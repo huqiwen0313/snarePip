@@ -80,7 +80,7 @@ The relationship among different tables is shown below:
 <img src="documentation/images/database.relationship.bmp" width="700"/>
 </p>
 
-To enable automated meta-table connection, please set up [google API](https://www.dundas.com/support/learning/documentation/connect-to-data/how-to/connecting-to-google-sheets) and add JSONKEY_PATH="your_crential" to .env file in the snarePip main folder.
+To enable automated meta-table connection, please set up [google API](https://www.dundas.com/support/learning/documentation/connect-to-data/how-to/connecting-to-google-sheets) and add JSONKEY_PATH="your_crential" into .env file in the snarePip main folder.
 
 
 ## Citation
