@@ -123,7 +123,7 @@ linktable <- read.table(args[6], sep="\t", header=TRUE)
 ref.dir <- args[7]
 
 # filtering cutoff
-tssenrichmentCutoff <- 0.15
+tssenrichmentCutoff <- 1.5
 min.fragments <- 1000
 min.umi <- 500
 
