@@ -3,7 +3,7 @@ Type: Package
 Title: snarePip
 Version: 0.1.0
 Author: Qiwen Hu
-Maintainer: Qiwen Hu <qiwen_hu@hms.harvard.edu>
+Maintainer: Qiwen Hu <huqiwen0313@gmail.com>
 Description: atac/snare-seq QC and downstream analysis
 License: GNU
 Encoding: UTF-8
