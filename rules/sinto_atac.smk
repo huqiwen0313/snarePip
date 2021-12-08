@@ -8,5 +8,5 @@ rule run_sinto_5:
     log:
         "tmp/logs/run_sinto_5.{sample}.log"
     run:
-        shell('sinto fragments -b {input.bam} -f {output.out1} --barcode_regex "[^:]*" 2> {log}')
+        shell('sinto fragments -b {input.bam} -f {output.out1} --barcode_regex "[^:]*" --collapse_within 2> {log}')
         shell('sort -k 1,2 -k2,2n {output.out1} > {output.out2}')
