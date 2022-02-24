@@ -97,6 +97,6 @@ The relationship among different tables is shown below:
 To enable automated meta-table connection, please set up [google API](https://www.dundas.com/support/learning/documentation/connect-to-data/how-to/connecting-to-google-sheets) and add JSONKEY_PATH="your_crential" into .env file in the snarePip main folder.
 
 
-## Citation
+## Datasets processed by the pipeline
 https://doi.org/10.1101/2021.07.28.454201
 
